@@ -312,33 +312,11 @@
     border-top: 2px solid #c70000;
     padding-top: 20px;
     margin-top: 35px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
   }
 
   .sig-box { text-align: center; }
   .sig-box .label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #c70000; font-weight: 700; }
   .sig-box .line { border-bottom: 1.5px solid #999; margin: 90px 15px 0 15px; }
-
-  .cachet-box {
-    border: 2px dashed #c70000;
-    color: #c70000;
-    border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 13px;
-    text-align: center;
-    letter-spacing: 1px;
-    opacity: .75;
-    margin: 0 auto;
-    transform: rotate(-8deg);
-  }
 
   /* ---------- PRINT ---------- */
   @media print {
@@ -387,7 +365,7 @@
     <div class="info-block">
       <h3>Client</h3>
       <div class="info-row"><div class="k">Date d'émission</div><div class="v"><input class="inp" type="date" id="dateChamp"></div></div>
-      <div class="info-row"><div class="k">Entreprise</div><div class="v"><input class="inp" id="clientNom" placeholder="Nom du client"></div></div>
+      <div class="info-row"><div class="k">Doit</div><div class="v"><input class="inp" id="clientNom" placeholder="Nom du client"></div></div>
       <div class="info-row"><div class="k">Matricule fisc.</div><div class="v"><input class="inp" id="clientMatricule" placeholder="0000000/A/M/000"></div></div>
       <div class="info-row"><div class="k">Téléphone</div><div class="v"><input class="inp" id="clientTel" placeholder="+216 XX XXX XXX"></div></div>
       <div class="info-row"><div class="k">Adresse</div><div class="v"><textarea class="inp ta" id="clientAdresse" rows="1" placeholder="Adresse du client" oninput="wrapAddr(this)"></textarea></div></div>
@@ -427,14 +405,11 @@
     Arrêtée la présente facture à la somme de : <strong id="montantEnLettres">zéro dinar</strong>.
   </div>
 
-  <!-- ======= SIGNATURE ET CACHET ======= -->
+  <!-- ======= CACHET ET SIGNATURE ======= -->
   <div class="sign-row">
-    <div class="sig-box">
-      <div class="label">Signature</div>
-      <div class="line"></div>
-    </div>
-    <div class="sig-box">
-      <div class="cachet-box">CACHET<br>DE L'AGENCE</div>
+    <div class="sig-box" style="margin: 0 auto;">
+      <div class="label">Cachet et Signature</div>
+      
     </div>
   </div>
 
