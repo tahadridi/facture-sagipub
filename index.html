@@ -78,7 +78,7 @@
   .agency-name { font-size: 22px; font-weight: 800; color: #c70000; letter-spacing: 1px; }
   .agency-tag { font-size: 12px; color: #777; letter-spacing: 2px; text-transform: uppercase; }
 
-  .facture-title { text-align: right; }
+  .facture-title { text-align: right; min-width: 0; }
 
   .facture-title h1 {
     font-size: 40px;
@@ -86,6 +86,8 @@
     color: #c70000;
     letter-spacing: 8px;
     line-height: 1;
+    white-space: nowrap;
+    max-width: 100%;
   }
 
   .facture-title h1:focus { outline: none; border-bottom: 1px dashed #c70000; }
@@ -166,7 +168,6 @@
     flex: 1;
     text-align: left;
     padding: 1px 0;
-    border-bottom: 1px solid #e8e8e8;
   }
 
   .inp:focus { outline: none; border-bottom: 1px solid #c70000; }
@@ -315,7 +316,7 @@
     margin-top: 35px;
   }
 
-  .sig-box { text-align: right; }
+  .sig-box { text-align: right; margin-right: 40px; }
   .sig-box .label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #c70000; font-weight: 700; }
 
   /* ---------- PRINT ---------- */
@@ -345,7 +346,7 @@
       </div>
     </div>
     <div class="facture-title">
-      <h1 contenteditable="true" spellcheck="false" id="titreFacture">FACTURE</h1>
+      <h1 contenteditable="true" spellcheck="false" id="titreFacture" oninput="resizeTitre()">FACTURE</h1>
       <div class="facture-num">N° <input id="numFacture" value="12345"></div>
     </div>
   </div>
@@ -353,8 +354,8 @@
   <!-- ======= INFORMATIONS ======= -->
   <div class="info-grid">
 
-    <div class="info-block">
-      <h3>Prestataire</h3>
+    <div class="info-block" style="padding-top: 36px;">
+      
       <div class="info-row"><div class="k">Nom</div><div class="v"> SAGIPUB</div></div>
       <div class="info-row"><div class="k">Téléphone</div><div class="v">+216 51 156 145</div></div>
       <div class="info-row"><div class="k">Email</div><div class="v">sagipub23@gmail.com</div></div>
@@ -416,26 +417,93 @@
 
   <div class="print-footer no-print">
     <button class="btn" onclick="printFacture()">Imprimer</button>
+    <button class="btn secondary" onclick="downloadPDF()">Télécharger PDF</button>
   </div>
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
   const TVA_RATE = 0.19;
   const TIMBRE = 1;
 
-  function printFacture() {
-    const rows = document.querySelectorAll('.info-block .info-row');
-    rows.forEach(row => {
+  function resizeTitre() {
+    const el = document.getElementById('titreFacture');
+    const len = el.textContent.trim().length;
+    let size = 40, ls = 8;
+    if (len > 14) { size = 21; ls = 2; }
+    else if (len > 10) { size = 26; ls = 3; }
+    else if (len > 7) { size = 32; ls = 4; }
+    el.style.fontSize = size + 'px';
+    el.style.letterSpacing = ls + 'px';
+  }
+
+  function hideEmptyFields() {
+    document.querySelectorAll('.info-block .info-row').forEach(row => {
       const input = row.querySelector('.inp');
       const v = row.querySelector('.v');
       if (input && !input.value.trim() && v) v.style.display = 'none';
     });
-    window.print();
-    rows.forEach(row => {
+  }
+
+  function showAllFields() {
+    document.querySelectorAll('.info-block .info-row').forEach(row => {
       const v = row.querySelector('.v');
       if (v) v.style.display = '';
     });
+  }
+
+  function hideForExport() {
+    hideEmptyFields();
+    document.querySelectorAll('.no-print, .add-row, .btn-del').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('thead th:last-child, tbody td:last-child').forEach(el => el.style.display = 'none');
+  }
+
+  function restoreForScreen() {
+    showAllFields();
+    document.querySelectorAll('.no-print, .add-row, .btn-del').forEach(el => el.style.display = '');
+    document.querySelectorAll('thead th:last-child, tbody td:last-child').forEach(el => el.style.display = '');
+  }
+
+  function printFacture() {
+    hideForExport();
+    window.print();
+    restoreForScreen();
+  }
+
+  function downloadPDF() {
+    if (typeof html2pdf === 'undefined') {
+      alert("La bibliothèque PDF n'a pas pu être chargée. Vérifiez votre connexion internet et réessayez.");
+      return;
+    }
+    hideForExport();
+    const el = document.getElementById('facture');
+    const btn = document.querySelector('.print-footer .btn.secondary');
+    const original = btn.textContent;
+    btn.textContent = 'Génération...';
+    btn.disabled = true;
+
+    html2pdf()
+      .set({
+        margin: 10,
+        filename: 'facture.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      })
+      .from(el)
+      .save()
+      .then(() => {
+        restoreForScreen();
+        btn.textContent = original;
+        btn.disabled = false;
+      })
+      .catch(err => {
+        restoreForScreen();
+        btn.textContent = original;
+        btn.disabled = false;
+        alert("Erreur lors de la génération du PDF : " + err);
+      });
   }
 
   function unite(n) {
