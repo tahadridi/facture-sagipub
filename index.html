@@ -422,7 +422,8 @@
 
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const TVA_RATE = 0.19;
   const TIMBRE = 1;
@@ -472,44 +473,58 @@
   }
 
   function downloadPDF() {
-    if (typeof html2pdf === 'undefined') {
-      alert("La bibliothèque PDF n'a pas pu être chargée. Vérifiez votre connexion internet et réessayez.");
-      return;
-    }
-    hideForExport();
     const el = document.getElementById('facture');
     const btn = document.querySelector('.print-footer .btn.secondary');
     const original = btn.textContent;
     btn.textContent = 'Génération...';
     btn.disabled = true;
 
-    html2pdf()
-      .set({
-        margin: 10,
-        filename: 'facture.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          windowWidth: document.documentElement.scrollWidth,
-          windowHeight: document.documentElement.scrollHeight
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      })
-      .from(el)
-      .save()
-      .then(() => {
-        restoreForScreen();
-        btn.textContent = original;
-        btn.disabled = false;
-      })
-      .catch(err => {
-        restoreForScreen();
-        btn.textContent = original;
-        btn.disabled = false;
-        alert("Erreur lors de la génération du PDF : " + err);
-      });
+    hideForExport();
+
+    html2canvas(el, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      windowWidth: el.scrollWidth,
+      windowHeight: el.scrollHeight,
+      scrollX: 0,
+      scrollY: 0
+    }).then(canvas => {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const contentW = pageW - margin * 2;
+      const imgW = canvas.width;
+      const imgH = canvas.height;
+      const pxPerMm = imgW / contentW;
+      const pagePxH = Math.floor((pageH - margin * 2) * pxPerMm);
+
+      let offsetY = 0;
+      let page = 0;
+      do {
+        if (page > 0) pdf.addPage();
+        const sliceH = Math.min(pagePxH, imgH - offsetY);
+        const slice = document.createElement('canvas');
+        slice.width = imgW;
+        slice.height = sliceH;
+        slice.getContext('2d').drawImage(canvas, 0, offsetY, imgW, sliceH, 0, 0, imgW, sliceH);
+        pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, contentW, sliceH / pxPerMm);
+        offsetY += sliceH;
+        page++;
+      } while (offsetY < imgH);
+
+      pdf.save('facture.pdf');
+      restoreForScreen();
+      btn.textContent = original;
+      btn.disabled = false;
+    }).catch(err => {
+      restoreForScreen();
+      btn.textContent = original;
+      btn.disabled = false;
+      alert("Erreur lors de la génération du PDF : " + err);
+    });
   }
 
   function unite(n) {
