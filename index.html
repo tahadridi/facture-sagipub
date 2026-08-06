@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facture</title>
+<style>
+  * {
+    margin: 0; padding: 0; box-sizing: border-box;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f5f5;
+    padding: 30px 20px;
+    color: #222;
+  }
+
+  .no-print { text-align: center; }
+
+  .print-footer { margin-top: 25px; text-align: center; }
+
+  .btn {
+    background: #c70000;
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: background .2s;
+  }
+
+  .btn:hover { background: #a30000; }
+  .btn.secondary { background: #e8e8e8; color: #333; }
+  .btn.secondary:hover { background: #cfcfcf; }
+
+  .sheet {
+    max-width: 850px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 40px 45px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+
+  /* ---------- TOP HEADER ---------- */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 25px;
+    border-bottom: 2px solid #c70000;
+    margin-bottom: 30px;
+  }
+
+  .brand { display: flex; align-items: center; gap: 16px; }
+
+  .logo {
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .agency-info { text-align: left; }
+
+  .agency-name { font-size: 22px; font-weight: 800; color: #c70000; letter-spacing: 1px; }
+  .agency-tag { font-size: 12px; color: #777; letter-spacing: 2px; text-transform: uppercase; }
+
+  .facture-title { text-align: right; }
+
+  .facture-title h1 {
+    font-size: 40px;
+    font-weight: 900;
+    color: #c70000;
+    letter-spacing: 8px;
+    line-height: 1;
+  }
+
+  .facture-num {
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 8px;
+    color: #333;
+  }
+
+  .facture-num input {
+    border: none;
+    border-bottom: 1px dashed #ccc;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    text-align: right;
+    width: 120px;
+  }
+
+  /* ---------- INFO BLOCKS ---------- */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 35px;
+    margin-bottom: 35px;
+  }
+
+  .info-block h3 {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: #c70000;
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 3px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 7px;
+    font-size: 13px;
+  }
+
+  .info-row .k {
+    min-width: 95px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  .info-row .v {
+    font-weight: 600;
+    font-size: 13px;
+    color: #333;
+    text-align: left;
+    padding: 0;
+    border-bottom: none;
+  }
+
+  .inp {
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    flex: 1;
+    text-align: left;
+    padding: 1px 0;
+    border-bottom: 1px solid #e8e8e8;
+  }
+
+  .inp:focus { outline: none; border-bottom: 1px solid #c70000; }
+
+  #dateChamp { width: 145px; min-height: 24px; }
+
+  .ta {
+    resize: none;
+    overflow: hidden;
+    display: block;
+    line-height: 1.4;
+    font-family: inherit;
+  }
+
+  /* ---------- TABLE ---------- */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+
+  thead th {
+    background: #c70000;
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: right;
+    border-right: 1px solid rgba(255, 255, 255, 0.25);
+  }
+
+  thead th:last-child { border-right: none; }
+  thead th:first-child, thead th:nth-child(2) { text-align: left; }
+
+  tbody td {
+    border-bottom: 1px solid #eee;
+    border-right: 1px solid #eee;
+    padding: 0;
+  }
+
+  tbody td:last-child { border-right: none; }
+
+  .row-input {
+    width: 100%;
+    border: none;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #333;
+    text-align: right;
+    font-family: inherit;
+    background: transparent;
+  }
+
+  .row-input.qte, .row-input.prix { text-align: center; }
+  .row-input.designation { text-align: left; }
+  .row-input:focus { background: #fdecec; outline: none; }
+  .row-input.montant { font-weight: 700; color: #c70000; }
+
+  tbody tr:hover { background: #fafafa; }
+
+  .btn-del {
+    background: none;
+    color: #c70000;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    display: block;
+    margin: 4px auto;
+  }
+
+  .btn-del:hover { background: #fdecec; }
+
+  .unit-cell { position: relative; }
+
+  .unit-cell .row-input { padding-right: 30px; }
+
+  .unit-cell .unit {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    pointer-events: none;
+  }
+
+  .add-row {
+    background: none;
+    color: #c70000;
+    border: 1.5px dashed #c70000;
+    border-radius: 4px;
+    padding: 7px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 25px;
+    transition: background .2s;
+  }
+
+  .add-row:hover { background: #fdecec; }
+
+  /* ---------- TOTALS ---------- */
+  .totals-wrap { display: flex; justify-content: flex-end; margin-bottom: 35px; }
+
+  .totals-box { width: 300px; border: 1px solid #eee; border-radius: 6px; overflow: hidden; }
+
+  .total-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .total-line:last-child { border-bottom: none; }
+  .total-line span { font-weight: 700; color: #333; }
+
+  .total-line.ttc {
+    background: #c70000;
+    color: #fff;
+    font-size: 16px;
+  }
+
+  .total-line.ttc span { color: #fff; }
+
+  /* ---------- FOOTER ---------- */
+  .amount-words {
+    font-size: 13px;
+    color: #333;
+    line-height: 1.6;
+    padding: 12px 16px;
+    border: 1px solid #eee;
+    border-left: 4px solid #c70000;
+    border-radius: 4px;
+    margin-bottom: 25px;
+    background: #fafafa;
+  }
+
+  .amount-words strong { color: #c70000; }
+
+  .sign-row {
+    border-top: 2px solid #c70000;
+    padding-top: 20px;
+    margin-top: 35px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+
+  .sig-box { text-align: center; }
+  .sig-box .label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #c70000; font-weight: 700; }
+  .sig-box .line { border-bottom: 1.5px solid #999; margin: 90px 15px 0 15px; }
+
+  .cachet-box {
+    border: 2px dashed #c70000;
+    color: #c70000;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    text-align: center;
+    letter-spacing: 1px;
+    opacity: .75;
+    margin: 0 auto;
+    transform: rotate(-8deg);
+  }
+
+  /* ---------- PRINT ---------- */
+  @media print {
+    @page { size: A4; margin: 0; }
+    body { background: #fff; margin: 0; padding: 0; }
+    .no-print, .add-row, .btn-del { display: none !important; }
+    thead th:last-child, tbody td:last-child { display: none; }
+    .sheet { box-shadow: none; max-width: 100%; padding: 12mm 12mm; }
+    .row-input:focus, tbody tr:hover { background: transparent; }
+    .inp, .facture-num input { border-bottom-color: #999; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet" id="facture">
+
+  <!-- ======= EN-TÊTE ======= -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo"><img src="image/logo1.png" alt="Logo de l'agence"></div>
+      <div class="agency-info">
+        <div class="agency-name">SAGIPUB</div>
+        <div class="agency-tag">Agence d'art graphique & Publicité</div>
+      </div>
+    </div>
+    <div class="facture-title">
+      <h1>FACTURE</h1>
+      <div class="facture-num">N° <input id="numFacture" value="12345"></div>
+    </div>
+  </div>
+
+  <!-- ======= INFORMATIONS ======= -->
+  <div class="info-grid">
+
+    <div class="info-block">
+      <h3>Prestataire</h3>
+      <div class="info-row"><div class="k">Nom</div><div class="v"> SAGIPUB</div></div>
+      <div class="info-row"><div class="k">Téléphone</div><div class="v">+216 51 156 145</div></div>
+      <div class="info-row"><div class="k">Email</div><div class="v">sagipub23@gmail.com</div></div>
+      <div class="info-row"><div class="k">Adresse</div><div class="v">53 Avenue de l'Independance <br>
+       1100 Zaghouan, Tunisie</div></div>
+      <div class="info-row"><div class="k">Matricule fisc.</div><div class="v">1834656F/A/C/000</div></div>
+    </div>
+
+    <div class="info-block">
+      <h3>Client</h3>
+      <div class="info-row"><div class="k">Date d'émission</div><div class="v"><input class="inp" type="date" id="dateChamp"></div></div>
+      <div class="info-row"><div class="k">Entreprise</div><div class="v"><input class="inp" id="clientNom" placeholder="Nom du client"></div></div>
+      <div class="info-row"><div class="k">Matricule fisc.</div><div class="v"><input class="inp" id="clientMatricule" placeholder="0000000/A/M/000"></div></div>
+      <div class="info-row"><div class="k">Téléphone</div><div class="v"><input class="inp" id="clientTel" placeholder="+216 XX XXX XXX"></div></div>
+      <div class="info-row"><div class="k">Adresse</div><div class="v"><textarea class="inp ta" id="clientAdresse" rows="1" placeholder="Adresse du client" oninput="wrapAddr(this)"></textarea></div></div>
+    </div>
+
+  </div>
+
+  <!-- ======= TABLE DES PRESTATIONS ======= -->
+  <table>
+    <thead>
+      <tr>
+        <th style="width:60px;">Qte</th>
+        <th>Déscription</th>
+        <th style="width:115px;">Prix Unitaire</th>
+        <th style="width:105px;">TVA (19%)</th>
+        <th style="width:120px;">Montant HT</th>
+        <th style="width:34px;"></th>
+      </tr>
+    </thead>
+    <tbody id="itemsBody"></tbody>
+  </table>
+
+  <button class="add-row" onclick="addRow()">+ Ajouter une ligne</button>
+
+  <!-- ======= RÉCAPITULATIF ======= -->
+  <div class="totals-wrap">
+    <div class="totals-box">
+      <div class="total-line"><span>Sous-total HT</span><span id="totalHT">0.000 DT</span></div>
+      <div class="total-line"><span>TVA (19%)</span><span id="totalTVA">0.000 DT</span></div>
+      <div class="total-line"><span>Timbre fiscal</span><span>1.000 DT</span></div>
+      <div class="total-line ttc"><span>TOTAL TTC</span><span id="totalTTC">0.000 DT</span></div>
+    </div>
+  </div>
+
+  <!-- ======= MONTANT EN LETTRES ======= -->
+  <div class="amount-words">
+    Arrêtée la présente facture à la somme de : <strong id="montantEnLettres">zéro dinar</strong>.
+  </div>
+
+  <!-- ======= SIGNATURE ET CACHET ======= -->
+  <div class="sign-row">
+    <div class="sig-box">
+      <div class="label">Signature</div>
+      <div class="line"></div>
+    </div>
+    <div class="sig-box">
+      <div class="cachet-box">CACHET<br>DE L'AGENCE</div>
+    </div>
+  </div>
+
+  <div class="print-footer no-print">
+    <button class="btn" onclick="window.print()">Imprimer</button>
+  </div>
+
+</div>
+
+<script>
+  const TVA_RATE = 0.19;
+  const TIMBRE = 1;
+
+  function unite(n) {
+    const u = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
+    return u[n];
+  }
+
+  function sousCent(n) {
+    if (n < 20) return unite(n);
+    const d = Math.floor(n / 10);
+    const r = n % 10;
+    if (d === 7) return r === 1 ? 'soixante et onze' : 'soixante-' + unite(10 + r);
+    if (d === 9) return 'quatre-vingt-' + unite(10 + r);
+    if (d === 8) return r === 0 ? 'quatre-vingts' : 'quatre-vingt-' + unite(r);
+    const txt = ['', '', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante'][d];
+    if (r === 0) return txt;
+    if (r === 1) return txt + ' et un';
+    return txt + '-' + unite(r);
+  }
+
+  function sousCentaine(n) {
+    const c = Math.floor(n / 100);
+    const r = n % 100;
+    let txt;
+    if (c === 1) txt = 'cent';
+    else txt = unite(c) + ' cent' + (r === 0 ? 's' : '');
+    if (r > 0) {
+      txt += ' ';
+      if (r === 1 && c > 1) txt += 'et un';
+      else txt += sousCent(r);
+    }
+    return txt;
+  }
+
+  function nbEnLettres(n) {
+    n = Math.floor(n);
+    if (n === 0) return 'zéro';
+    if (n < 100) return sousCent(n);
+    if (n < 1000) return sousCentaine(n);
+    let txt = '';
+    const millions = Math.floor(n / 1000000);
+    const milliers = Math.floor((n % 1000000) / 1000);
+    const reste = n % 1000;
+    if (millions > 0) txt += nbEnLettres(millions) + ' million' + (millions > 1 ? 's' : '');
+    if (milliers > 0) {
+      if (txt) txt += ' ';
+      txt += milliers === 1 ? 'mille' : nbEnLettres(milliers) + ' mille';
+    }
+    if (reste > 0) {
+      if (txt) txt += ' ';
+      txt += sousCentaine(reste);
+    }
+    return txt;
+  }
+
+  function enLettres(montant) {
+    const dinars = Math.floor(montant);
+    const millimes = Math.round((montant - dinars) * 1000);
+    let txt = '';
+    if (dinars > 0) {
+      txt += nbEnLettres(dinars) + (dinars > 1 ? ' dinars' : ' dinar');
+    }
+    if (millimes > 0) {
+      if (txt) txt += ' et ';
+      txt += nbEnLettres(millimes) + (millimes > 1 ? ' millimes' : ' millime');
+    }
+    return txt === '' ? 'zéro dinar' : txt;
+  }
+
+  function updateMontantEnLettres(total) {
+    document.getElementById('montantEnLettres').textContent = enLettres(total);
+  }
+
+  function wrapAddr(el) {
+    const pos = el.selectionStart;
+    const raw = el.value.replace(/\n/g, '');
+    let out = '';
+    for (let i = 0; i < raw.length; i++) {
+      out += raw[i];
+      if ((i + 1) % 14 === 0 && i !== raw.length - 1) out += '\n';
+    }
+    if (out !== el.value) {
+      el.value = out;
+      const lines = Math.floor(pos / 14);
+      el.setSelectionRange(pos + lines, pos + lines);
+    }
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
+  function fmt(n) {
+    return n.toFixed(3);
+  }
+
+  function addRow() {
+    const tbody = document.getElementById('itemsBody');
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = `
+      <td><input class="row-input qte" type="number" min="0" value="1" oninput="calcRow(this)"></td>
+      <td><input class="row-input designation" type="text" placeholder="Désignation de l'article"></td>
+      <td class="unit-cell"><input class="row-input prix" type="text" inputmode="decimal" value="0.000" oninput="calcRow(this)" onblur="formatPrix(this)"><span class="unit">DT</span></td>
+      <td class="unit-cell"><input class="row-input tva-line" type="text" readonly><span class="unit">DT</span></td>
+      <td class="unit-cell"><input class="row-input montant" type="text" readonly><span class="unit">DT</span></td>
+      <td><button class="btn-del" onclick="delRow(this)">×</button></td>
+    `;
+
+    tbody.appendChild(tr);
+    calcTotals();
+  }
+
+  function delRow(btn) {
+    const rows = document.querySelectorAll('#itemsBody tr');
+    if (rows.length <= 1) {
+      btn.closest('tr').querySelectorAll('.qte, .prix').forEach(i => { i.value = '0'; });
+      calcRow(btn.closest('tr').querySelector('.qte'));
+    } else {
+      btn.closest('tr').remove();
+      calcTotals();
+    }
+  }
+
+  function formatPrix(el) {
+    const v = parseFloat(el.value.replace(',', '.'));
+    el.value = isNaN(v) ? '0.000' : v.toFixed(3);
+    calcRow(el);
+  }
+
+  function calcRow(el) {
+    const tr = el.closest('tr');
+    const qte = parseFloat(tr.querySelector('.qte').value) || 0;
+    const prix = parseFloat(tr.querySelector('.prix').value) || 0;
+    const montantHT = qte * prix;
+    tr.querySelector('.tva-line').value = fmt(montantHT * TVA_RATE);
+    tr.querySelector('.montant').value = fmt(montantHT);
+    calcTotals();
+  }
+
+  function calcTotals() {
+    let totalHT = 0, totalTVA = 0;
+    document.querySelectorAll('#itemsBody tr').forEach(tr => {
+      const qte = parseFloat(tr.querySelector('.qte').value) || 0;
+      const prix = parseFloat(tr.querySelector('.prix').value) || 0;
+      totalHT += qte * prix;
+      totalTVA += (qte * prix) * TVA_RATE;
+    });
+    document.getElementById('totalHT').textContent = fmt(totalHT) + ' DT';
+    document.getElementById('totalTVA').textContent = fmt(totalTVA) + ' DT';
+    const totalTTC = totalHT + totalTVA + TIMBRE;
+    document.getElementById('totalTTC').textContent = fmt(totalTTC) + ' DT';
+    updateMontantEnLettres(totalTTC);
+  }
+
+  addRow();
+</script>
+
+</body>
+</html>
