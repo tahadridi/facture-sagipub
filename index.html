@@ -88,6 +88,9 @@
     line-height: 1;
   }
 
+  .facture-title h1:focus { outline: none; border-bottom: 1px dashed #c70000; }
+  .facture-title h1:hover { border-bottom: 1px dashed rgba(199,0,0,.4); }
+
   .facture-num {
     font-size: 16px;
     font-weight: 700;
@@ -309,14 +312,11 @@
   .amount-words strong { color: #c70000; }
 
   .sign-row {
-    border-top: 2px solid #c70000;
-    padding-top: 20px;
     margin-top: 35px;
   }
 
-  .sig-box { text-align: center; }
+  .sig-box { text-align: right; }
   .sig-box .label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #c70000; font-weight: 700; }
-  .sig-box .line { border-bottom: 1.5px solid #999; margin: 90px 15px 0 15px; }
 
   /* ---------- PRINT ---------- */
   @media print {
@@ -327,6 +327,7 @@
     .sheet { box-shadow: none; max-width: 100%; padding: 12mm 12mm; }
     .row-input:focus, tbody tr:hover { background: transparent; }
     .inp, .facture-num input { border-bottom-color: #999; }
+    input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; }
   }
 </style>
 </head>
@@ -344,7 +345,7 @@
       </div>
     </div>
     <div class="facture-title">
-      <h1>FACTURE</h1>
+      <h1 contenteditable="true" spellcheck="false" id="titreFacture">FACTURE</h1>
       <div class="facture-num">N° <input id="numFacture" value="12345"></div>
     </div>
   </div>
@@ -407,14 +408,14 @@
 
   <!-- ======= CACHET ET SIGNATURE ======= -->
   <div class="sign-row">
-    <div class="sig-box" style="margin: 0 auto;">
+    <div class="sig-box">
       <div class="label">Cachet et Signature</div>
-      
     </div>
+  </div>
   </div>
 
   <div class="print-footer no-print">
-    <button class="btn" onclick="window.print()">Imprimer</button>
+    <button class="btn" onclick="printFacture()">Imprimer</button>
   </div>
 
 </div>
@@ -422,6 +423,20 @@
 <script>
   const TVA_RATE = 0.19;
   const TIMBRE = 1;
+
+  function printFacture() {
+    const rows = document.querySelectorAll('.info-block .info-row');
+    rows.forEach(row => {
+      const input = row.querySelector('.inp');
+      const v = row.querySelector('.v');
+      if (input && !input.value.trim() && v) v.style.display = 'none';
+    });
+    window.print();
+    rows.forEach(row => {
+      const v = row.querySelector('.v');
+      if (v) v.style.display = '';
+    });
+  }
 
   function unite(n) {
     const u = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
