@@ -496,17 +496,14 @@
 
     hideForExport();
     document.body.classList.add('export-mode');
-    window.scrollTo(0, 0);
 
     requestAnimationFrame(() => {
       html2canvas(document.body, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: document.documentElement.offsetWidth,
-        windowHeight: document.documentElement.offsetHeight
+        windowWidth: document.body.scrollWidth,
+        windowHeight: document.body.scrollHeight
       }).then(canvas => {
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
