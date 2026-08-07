@@ -329,6 +329,17 @@
   .sig-box { text-align: right; margin-right: 40px; }
   .sig-box .label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #c70000; font-weight: 700; }
 
+  /* ---------- PDF EXPORT (même mise en page que l'impression) ---------- */
+  body.export-mode {
+    background: #fff;
+    padding: 0;
+  }
+  body.export-mode .sheet {
+    max-width: 100%;
+    box-shadow: none;
+    padding: 45px;
+  }
+
   /* ---------- PRINT ---------- */
   @media print {
     @page { size: A4; margin: 0; }
@@ -478,65 +489,50 @@
   }
 
   function downloadPDF() {
-    const src = document.getElementById('facture');
     const btn = document.querySelector('.print-footer .btn.secondary');
     const original = btn.textContent;
     btn.textContent = 'Génération...';
     btn.disabled = true;
 
-    const host = document.createElement('div');
-    host.style.cssText = 'position:absolute;left:-9999px;top:0;width:794px;height:auto;background:#fff;';
-    document.body.appendChild(host);
+    hideForExport();
+    document.body.classList.add('export-mode');
+    window.scrollTo(0, 0);
 
-    const clone = src.cloneNode(true);
-    clone.style.cssText = 'width:794px;max-width:none;margin:0;padding:45px;box-shadow:none;';
-    clone.querySelectorAll('.no-print, .add-row, .btn-del').forEach(el => el.remove());
-    clone.querySelectorAll('thead th:last-child, tbody td:last-child').forEach(el => el.remove());
-    clone.querySelectorAll('.info-block .info-row').forEach(row => {
-      const input = row.querySelector('.inp');
-      const v = row.querySelector('.v');
-      if (input && !input.value.trim() && v) v.style.display = 'none';
-    });
-
-    const allLoaded = Array.from(clone.querySelectorAll('img'))
-      .map(img => img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; }));
-    host.appendChild(clone);
-
-    Promise.all(allLoaded).then(() => {
-      requestAnimationFrame(() => {
-        html2canvas(clone, {
-          scale: 2,
-          backgroundColor: '#ffffff',
-          useCORS: true,
-          width: clone.scrollWidth,
-          height: clone.scrollHeight,
-          windowWidth: 794,
-          windowHeight: clone.scrollHeight
-        }).then(canvas => {
-          const { jsPDF } = window.jspdf;
-          const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-          const pageW = pdf.internal.pageSize.getWidth();
-          const pageH = pdf.internal.pageSize.getHeight();
-          const margin = 10;
-          const maxW = pageW - margin * 2;
-          const maxH = pageH - margin * 2;
-          const imgW = canvas.width;
-          const imgH = canvas.height;
-          const scale = Math.min(maxW / imgW, maxH / imgH);
-          const drawW = imgW * scale;
-          const drawH = imgH * scale;
-          const x = (pageW - drawW) / 2;
-          pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, margin, drawW, drawH);
-          pdf.save('facture.pdf');
-          host.remove();
-          btn.textContent = original;
-          btn.disabled = false;
-        }).catch(err => {
-          host.remove();
-          btn.textContent = original;
-          btn.disabled = false;
-          alert("Erreur lors de la génération du PDF : " + err);
-        });
+    requestAnimationFrame(() => {
+      html2canvas(document.body, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: document.documentElement.offsetWidth,
+        windowHeight: document.documentElement.offsetHeight
+      }).then(canvas => {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const margin = 10;
+        const maxW = pageW - margin * 2;
+        const maxH = pageH - margin * 2;
+        const imgW = canvas.width;
+        const imgH = canvas.height;
+        const scale = Math.min(maxW / imgW, maxH / imgH);
+        const drawW = imgW * scale;
+        const drawH = imgH * scale;
+        const x = (pageW - drawW) / 2;
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, margin, drawW, drawH);
+        pdf.save('facture.pdf');
+        document.body.classList.remove('export-mode');
+        restoreForScreen();
+        btn.textContent = original;
+        btn.disabled = false;
+      }).catch(err => {
+        document.body.classList.remove('export-mode');
+        restoreForScreen();
+        btn.textContent = original;
+        btn.disabled = false;
+        alert("Erreur lors de la génération du PDF : " + err);
       });
     });
   }
