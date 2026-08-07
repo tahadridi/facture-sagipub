@@ -491,10 +491,8 @@
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
-        windowWidth: document.documentElement.scrollWidth,
-        windowHeight: document.documentElement.scrollHeight,
-        scrollX: 0,
-        scrollY: -window.scrollY
+        height: el.scrollHeight,
+        windowHeight: el.scrollHeight
       }).then(canvas => {
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
