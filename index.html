@@ -486,38 +486,40 @@
 
     hideForExport();
 
-    html2canvas(el, {
-      scale: 2,
-      backgroundColor: '#ffffff',
-      useCORS: true,
-      windowWidth: el.scrollWidth,
-      windowHeight: el.scrollHeight,
-      scrollX: 0,
-      scrollY: 0
-    }).then(canvas => {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const maxW = pageW - margin * 2;
-      const maxH = pageH - margin * 2;
-      const imgW = canvas.width;
-      const imgH = canvas.height;
-      const scale = Math.min(maxW / imgW, maxH / imgH);
-      const drawW = imgW * scale;
-      const drawH = imgH * scale;
-      const x = (pageW - drawW) / 2;
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, margin, drawW, drawH);
-      pdf.save('facture.pdf');
-      restoreForScreen();
-      btn.textContent = original;
-      btn.disabled = false;
-    }).catch(err => {
-      restoreForScreen();
-      btn.textContent = original;
-      btn.disabled = false;
-      alert("Erreur lors de la génération du PDF : " + err);
+    requestAnimationFrame(() => {
+      html2canvas(el, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
+        scrollX: 0,
+        scrollY: -window.scrollY
+      }).then(canvas => {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const margin = 10;
+        const maxW = pageW - margin * 2;
+        const maxH = pageH - margin * 2;
+        const imgW = canvas.width;
+        const imgH = canvas.height;
+        const scale = Math.min(maxW / imgW, maxH / imgH);
+        const drawW = imgW * scale;
+        const drawH = imgH * scale;
+        const x = (pageW - drawW) / 2;
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, margin, drawW, drawH);
+        pdf.save('facture.pdf');
+        restoreForScreen();
+        btn.textContent = original;
+        btn.disabled = false;
+      }).catch(err => {
+        restoreForScreen();
+        btn.textContent = original;
+        btn.disabled = false;
+        alert("Erreur lors de la génération du PDF : " + err);
+      });
     });
   }
 
