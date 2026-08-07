@@ -57,26 +57,36 @@
     margin-bottom: 30px;
   }
 
-  .brand { display: flex; align-items: center; gap: 16px; }
+  .brand {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
 
   .logo {
-    width: 100px;
-    height: 100px;
-    overflow: hidden;
+    max-width: 260px;
     flex-shrink: 0;
   }
 
   .logo img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
     display: block;
+    object-fit: contain;
   }
 
   .agency-info { text-align: left; }
 
   .agency-name { font-size: 22px; font-weight: 800; color: #c70000; letter-spacing: 1px; }
   .agency-tag { font-size: 12px; color: #777; letter-spacing: 2px; text-transform: uppercase; }
+
+  .agency-coords {
+    margin-top: 8px;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #555;
+  }
 
   .facture-title { text-align: right; min-width: 0; }
 
@@ -339,38 +349,32 @@
   <!-- ======= EN-TÊTE ======= -->
   <div class="topbar">
     <div class="brand">
-      <div class="logo"><img src="image/logo1.png" alt="Logo de l'agence"></div>
+      <div class="logo"><img src="image/LOGO.png" alt="Logo de l'agence"></div>
       <div class="agency-info">
-        <div class="agency-name">SAGIPUB</div>
-        <div class="agency-tag">Agence d'art graphique & Publicité</div>
+        <div class="agency-coords">
+          Tél : +216 51 156 145 &nbsp;<br>
+           Email : sagipub23@gmail.com<br>
+          Adresse : 53 Avenue de l'Independance, 1100 Zaghouan, Tunisie<br>
+          MF : 1834656F/A/C/000
+        </div>
       </div>
     </div>
     <div class="facture-title">
       <h1 contenteditable="true" spellcheck="false" id="titreFacture" oninput="resizeTitre()">FACTURE</h1>
-      <div class="facture-num">N° <input id="numFacture" value="12345"></div>
+      <div class="facture-num">N° <input id="numFacture" onblur="formatNumFacture()"></div>
     </div>
   </div>
 
   <!-- ======= INFORMATIONS ======= -->
   <div class="info-grid">
 
-    <div class="info-block" style="padding-top: 36px;">
-      
-      <div class="info-row"><div class="k">Nom</div><div class="v"> SAGIPUB</div></div>
-      <div class="info-row"><div class="k">Téléphone</div><div class="v">+216 51 156 145</div></div>
-      <div class="info-row"><div class="k">Email</div><div class="v">sagipub23@gmail.com</div></div>
-      <div class="info-row"><div class="k">Adresse</div><div class="v">53 Avenue de l'Independance <br>
-       1100 Zaghouan, Tunisie</div></div>
-      <div class="info-row"><div class="k">Matricule fisc.</div><div class="v">1834656F/A/C/000</div></div>
-    </div>
-
-    <div class="info-block">
+    <div class="info-block" style="grid-column: 1 / -1;">
       <h3>Client</h3>
-      <div class="info-row"><div class="k">Date d'émission</div><div class="v"><input class="inp" type="date" id="dateChamp"></div></div>
-      <div class="info-row"><div class="k">Doit</div><div class="v"><input class="inp" id="clientNom" placeholder="Nom du client"></div></div>
-      <div class="info-row"><div class="k">Matricule fisc.</div><div class="v"><input class="inp" id="clientMatricule" placeholder="0000000/A/M/000"></div></div>
-      <div class="info-row"><div class="k">Téléphone</div><div class="v"><input class="inp" id="clientTel" placeholder="+216 XX XXX XXX"></div></div>
-      <div class="info-row"><div class="k">Adresse</div><div class="v"><textarea class="inp ta" id="clientAdresse" rows="1" placeholder="Adresse du client" oninput="wrapAddr(this)"></textarea></div></div>
+      <div class="info-row"><div class="k">Date :</div><div class="v"><input class="inp" type="date" id="dateChamp"></div></div>
+      <div class="info-row"><div class="k">Doit :</div><div class="v"><input class="inp" id="clientNom" placeholder="Nom du client"></div></div>
+      <div class="info-row"><div class="k">MF :</div><div class="v"><input class="inp" id="clientMatricule" placeholder="0000000/A/M/000"></div></div>
+      <div class="info-row"><div class="k">Téléphone :</div><div class="v"><input class="inp" id="clientTel" placeholder="+216 XX XXX XXX"></div></div>
+      <div class="info-row"><div class="k">Adresse :</div><div class="v"><textarea class="inp ta" id="clientAdresse" rows="1" placeholder="Adresse du client" oninput="wrapAddr(this)"></textarea></div></div>
     </div>
 
   </div>
@@ -410,7 +414,7 @@
   <!-- ======= CACHET ET SIGNATURE ======= -->
   <div class="sign-row">
     <div class="sig-box">
-      <div class="label">Cachet et Signature</div>
+      <div class="label"> Signature et Cachet </div>
     </div>
   </div>
   </div>
@@ -418,6 +422,7 @@
   <div class="print-footer no-print">
     <button class="btn" onclick="printFacture()">Imprimer</button>
     <button class="btn secondary" onclick="downloadPDF()">Télécharger PDF</button>
+    <button class="btn secondary" onclick="resetFacture()">Réinitialiser</button>
   </div>
 
 </div>
@@ -495,26 +500,15 @@
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
       const margin = 10;
-      const contentW = pageW - margin * 2;
+      const maxW = pageW - margin * 2;
+      const maxH = pageH - margin * 2;
       const imgW = canvas.width;
       const imgH = canvas.height;
-      const pxPerMm = imgW / contentW;
-      const pagePxH = Math.floor((pageH - margin * 2) * pxPerMm);
-
-      let offsetY = 0;
-      let page = 0;
-      do {
-        if (page > 0) pdf.addPage();
-        const sliceH = Math.min(pagePxH, imgH - offsetY);
-        const slice = document.createElement('canvas');
-        slice.width = imgW;
-        slice.height = sliceH;
-        slice.getContext('2d').drawImage(canvas, 0, offsetY, imgW, sliceH, 0, 0, imgW, sliceH);
-        pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, contentW, sliceH / pxPerMm);
-        offsetY += sliceH;
-        page++;
-      } while (offsetY < imgH);
-
+      const scale = Math.min(maxW / imgW, maxH / imgH);
+      const drawW = imgW * scale;
+      const drawH = imgH * scale;
+      const x = (pageW - drawW) / 2;
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, margin, drawW, drawH);
       pdf.save('facture.pdf');
       restoreForScreen();
       btn.textContent = original;
@@ -620,20 +614,28 @@
   }
 
   function addRow() {
+    addRowData({ qte: '1', designation: '', prix: '0.000' });
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function addRowData(data) {
     const tbody = document.getElementById('itemsBody');
     const tr = document.createElement('tr');
 
     tr.innerHTML = `
-      <td><input class="row-input qte" type="number" min="0" value="1" oninput="calcRow(this)"></td>
-      <td><input class="row-input designation" type="text" placeholder="Désignation de l'article"></td>
-      <td class="unit-cell"><input class="row-input prix" type="text" inputmode="decimal" value="0.000" oninput="calcRow(this)" onblur="formatPrix(this)"><span class="unit">DT</span></td>
+      <td><input class="row-input qte" type="number" min="0" value="${esc(data.qte)}" oninput="calcRow(this)"></td>
+      <td><input class="row-input designation" type="text" placeholder="Désignation de l'article" value="${esc(data.designation)}"></td>
+      <td class="unit-cell"><input class="row-input prix" type="text" inputmode="decimal" value="${esc(data.prix)}" oninput="calcRow(this)" onblur="formatPrix(this)"><span class="unit">DT</span></td>
       <td class="unit-cell"><input class="row-input tva-line" type="text" readonly><span class="unit">DT</span></td>
       <td class="unit-cell"><input class="row-input montant" type="text" readonly><span class="unit">DT</span></td>
       <td><button class="btn-del" onclick="delRow(this)">×</button></td>
     `;
 
     tbody.appendChild(tr);
-    calcTotals();
+    calcRow(tr.querySelector('.qte'));
   }
 
   function delRow(btn) {
@@ -678,7 +680,70 @@
     updateMontantEnLettres(totalTTC);
   }
 
-  addRow();
+  function saveState() {
+    const state = {
+      numFacture: document.getElementById('numFacture').value,
+      titre: document.getElementById('titreFacture').textContent,
+      date: document.getElementById('dateChamp').value,
+      clientNom: document.getElementById('clientNom').value,
+      clientMatricule: document.getElementById('clientMatricule').value,
+      clientTel: document.getElementById('clientTel').value,
+      clientAdresse: document.getElementById('clientAdresse').value,
+      rows: []
+    };
+    document.querySelectorAll('#itemsBody tr').forEach(tr => {
+      state.rows.push({
+        qte: tr.querySelector('.qte').value,
+        designation: tr.querySelector('.designation').value,
+        prix: tr.querySelector('.prix').value
+      });
+    });
+    try { localStorage.setItem('factureState', JSON.stringify(state)); } catch (e) {}
+  }
+
+  document.getElementById('facture').addEventListener('input', saveState);
+
+  function formatNumFacture() {
+    const el = document.getElementById('numFacture');
+    const year = new Date().getFullYear();
+    const digits = el.value.replace(/\D/g, '').slice(-3);
+    el.value = digits ? digits.padStart(3, '0') + '-' + year : '-' + year;
+    saveState();
+  }
+
+  function loadState() {
+    const year = new Date().getFullYear();
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem('factureState') || 'null'); } catch (e) {}
+
+    if (saved) {
+      document.getElementById('numFacture').value = saved.numFacture || '';
+      document.getElementById('titreFacture').textContent = saved.titre || 'FACTURE';
+      document.getElementById('dateChamp').value = saved.date || '';
+      document.getElementById('clientNom').value = saved.clientNom || '';
+      document.getElementById('clientMatricule').value = saved.clientMatricule || '';
+      document.getElementById('clientTel').value = saved.clientTel || '';
+      document.getElementById('clientAdresse').value = saved.clientAdresse || '';
+      resizeTitre();
+      const rows = (saved.rows && saved.rows.length) ? saved.rows : [{ qte: '1', designation: '', prix: '0.000' }];
+      rows.forEach(r => addRowData({ qte: r.qte, designation: r.designation, prix: r.prix }));
+      const addr = document.getElementById('clientAdresse');
+      addr.style.height = 'auto';
+      addr.style.height = addr.scrollHeight + 'px';
+    } else {
+      document.getElementById('numFacture').value = '001-' + year;
+      addRow();
+    }
+    formatNumFacture();
+  }
+
+  function resetFacture() {
+    if (!confirm('Réinitialiser tous les champs de la facture ?')) return;
+    try { localStorage.removeItem('factureState'); } catch (e) {}
+    location.reload();
+  }
+
+  loadState();
 </script>
 
 </body>
